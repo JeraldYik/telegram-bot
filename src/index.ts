@@ -1,11 +1,25 @@
 import movieService from './services/movie';
 import LTAOpenDataService from './services/LTAOpenData';
 
-const TelegramBot = require('node-telegram-bot-api');
-const token = '1450722469:AAEMALU_aa5RxOT9dFpw6WmFDnOp3urPYQo';
-const bot = new TelegramBot(token, {polling: true});
+require('dotenv').config();
 
-require('dotenv').config()
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
+const port = process.env.PORT || 8080;
+
+const TelegramBot = require('node-telegram-bot-api');
+const token = process.env.TELEGRAM_APIKEY;
+let bot;
+// for deployment
+if (process.env.NODE_ENV === 'production') {
+  bot = new TelegramBot(token);
+  bot.setWebHook(process.env.HEROKU_URL + bot.token);
+} else {
+  bot = new TelegramBot(token, { polling: true });
+}
 
 // test
 bot.onText(/\/echo (.+)/, (msg, match): void => {
@@ -20,3 +34,13 @@ movieService(bot);
 
 // next bus
 LTAOpenDataService(bot);
+
+// server
+app.listen(port, function() {
+  console.log(`Listening on http://localhost:${port}`);
+});
+
+app.post('/' + bot.token, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
