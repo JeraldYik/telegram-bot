@@ -8,14 +8,15 @@ interface IParsedData {
   nextArrival: Array<string>;
 }
 
-const nextBusService = (bot) => {
-  bot.onText(/\/bus (.+)/, async (msg, match): Promise<void> => {
-    const apiKey = process.env.LTADATAMALL_APIKEY;
+const LTAOpenDataService = (bot) => {
+  const apiKey = process.env.LTADATAMALL_APIKEY;
+  const _headers = {'AccountKey' : apiKey};
+
+  bot.onText(/\/bus (.+)/, async (msg, match): Promise<void> => {  
     const busStop = match[1];
     const chatId = msg.chat.id;
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${busStop}`;
-    const _headers = {'AccountKey' : apiKey};
-  
+    
     try {
       const response = await axios.get(uri, {headers: _headers});
       bot.sendMessage(chatId, `Querying for Bus Stop #${response.data.BusStopCode}`);
@@ -40,7 +41,30 @@ const nextBusService = (bot) => {
     } catch (err) {
       bot.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
     }
-  })
+  });
+
+  bot.onText(/\/traindown/, async (msg): Promise<void> => {  
+    const chatId = msg.chat.id;
+    const uri = `http://datamall2.mytransport.sg/ltaodataservice/TrainServiceAlerts`;
+    try {
+      const response = await axios.get(uri, {headers: _headers});
+      if (response.status === 200) {  
+        if (response.data.value.Status === 1) {
+          bot.sendMessage(chatId, 'No Train Disruption');
+        } else {
+          bot.sendMessage(chatId, 'Please take note...\n' + JSON.stringify(response.data.value));
+        }
+      } else {
+        bot.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+      }
+  
+    } catch (err) {
+      bot.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+    }
+
+  });
+
+
 
   const parseData = (data): Array<IParsedData> => {
     const returnArr: Array<IParsedData> = [];
@@ -60,6 +84,6 @@ const nextBusService = (bot) => {
   }
 }
 
-export default nextBusService;
+export default LTAOpenDataService;
 
 

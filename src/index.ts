@@ -1,5 +1,5 @@
 import movieService from './services/movie';
-import nextBusService from './services/nextBus';
+import LTAOpenDataService from './services/LTAOpenData';
 
 const TelegramBot = require('node-telegram-bot-api');
 const token = '1450722469:AAEMALU_aa5RxOT9dFpw6WmFDnOp3urPYQo';
@@ -19,4 +19,4 @@ bot.onText(/\/echo (.+)/, (msg, match): void => {
 movieService(bot);
 
 // next bus
-nextBusService(bot);
+LTAOpenDataService(bot);
