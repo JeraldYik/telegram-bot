@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const movieService = (bot) => {
   bot.onText(/\/movie (.+)/, async (msg, match): Promise<void> => {
-    const apiKey = '81f975b6';
+    const apiKey = process.env.OMDB_APIKEY;
     const movie = match[1];
     const chatId = msg.chat.id;
     const uri = `http://www.omdbapi.com/?apikey=${apiKey}&t=${movie}`;

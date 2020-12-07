@@ -10,7 +10,7 @@ interface IParsedData {
 
 const nextBusService = (bot) => {
   bot.onText(/\/bus (.+)/, async (msg, match): Promise<void> => {
-    const apiKey = 'ZXPAGGVFQNyAIq5X28vwZw==';
+    const apiKey = process.env.LTADATAMALL_APIKEY;
     const busStop = match[1];
     const chatId = msg.chat.id;
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${busStop}`;
