@@ -1,8 +1,11 @@
 import axios from 'axios';
 import moment from 'moment';
 
-const MAX_NEXTBUS = 2;
+/** DOCUMENTATION:
+ * https://www.mytransport.sg/content/dam/datamall/datasets/LTA_DataMall_API_User_Guide.pdf
+ */
 
+const MAX_NEXTBUS = 2;
 interface IParsedData {
   bus: string,
   nextArrival: Array<string>;
@@ -25,11 +28,10 @@ const LTAOpenDataService = (bot) => {
           const parsedData = parseData(response.data.Services);
           let s = `Bus Stop #${response.data.BusStopCode}\n---------------------------\n`;
           parsedData.forEach(d => {
-            s += `Bus ${d.bus}:\n\t`;
+            s += `Bus ${d.bus}:\n`;
             d.nextArrival.forEach(n => {
-              s += `${n}. `;
+              s += n;
             });
-            s += '\n';
           });
           bot.sendMessage(chatId, s);
         } else {
@@ -64,23 +66,45 @@ const LTAOpenDataService = (bot) => {
 
   });
 
-
-
   const parseData = (data): Array<IParsedData> => {
     const returnArr: Array<IParsedData> = [];
     data.forEach(d => {
       const aux: IParsedData = {} as IParsedData;
       const keys = Object.keys(d);
+      let count = 1;
       aux.bus = d.ServiceNo; 
       aux.nextArrival = [];
-      for(var i=2; i<2+MAX_NEXTBUS; i++) {
-        if(i <= keys.length) {
-          aux.nextArrival.push(moment(d[keys[i]].EstimatedArrival).fromNow());
+      // API returns 3 next buses
+      for(var i=2; i<2+3; i++) {
+        if(count <= MAX_NEXTBUS && i <= keys.length) {
+          const nextTime = moment(d[keys[i]].EstimatedArrival);
+          // to ignore buses that already left
+          if (nextTime.diff(moment()) > 0) {
+            const s = '\t' + seatsAvailability(d[keys[i]].Load) + ' ' + nextTime.fromNow() + '\n';
+            aux.nextArrival.push(s);
+            count++;
+          }
         }
       }
       returnArr.push(aux);
     });
     return returnArr;
+  }
+}
+
+const seatsAvailability = (code: string): string => {
+  const GREEN_CIRCLE = '\uD83D\uDFE2'; 
+  const ORANGE_CIRCLE = '\uD83D\uDFE0';
+  const RED_CIRCLE = '\uD83D\uDD34';
+  switch (code) {
+    case 'SEA':
+      return GREEN_CIRCLE;
+    case 'SDA':
+      return ORANGE_CIRCLE;
+    case 'LSD':
+      return RED_CIRCLE;
+    default: 
+      return '';
   }
 }
 
