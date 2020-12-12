@@ -30,7 +30,7 @@ const LTAOpenDataService = (bot) => {
     if (!/^\d{5}$/.test(busStop)) {
       foundBusStop = await fromLandmarkNameToBusStopCode(busStop, _headers);
       if (foundBusStop === '00000') {
-        bot.sendMessage(chatId, 'Bus Services ceased to service the input bus stop/road for today');
+        bot.sendMessage(chatId, 'Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead');
         return;
       } else if (!/^\d{5}$/.test(foundBusStop)) {
         // error
