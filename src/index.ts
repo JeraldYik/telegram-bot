@@ -1,5 +1,6 @@
 import movieService from './services/movie';
 import LTAOpenDataService from './services/LTAOpenData';
+import googleMapsService from './services/googleMaps';
 
 require('dotenv').config();
 
@@ -30,14 +31,24 @@ bot.onText(/\/echo (.+)/, (msg, match): void => {
   const chatId = msg.chat.id;
   const resp = match[1]; 
 
+  // const inlineKeyboardMarkup = TelegramBot.InlineKeyboardMarkup;
+  // const inlineKeyboardButton = TelegramBot.InlineKeyboardButton;
+  // bot.sendMessage(chatId, resp, {reply_markup: inlineKeyboardMarkup(
+  //   [[inlineKeyboardButton('inline button')]]
+  // ), callback_data: 'hello'});
   bot.sendMessage(chatId, resp);
 });
+
+// bot.on("polling_error", console.log);
 
 // movie
 movieService(bot);
 
 // next bus
 LTAOpenDataService(bot);
+
+// google food
+googleMapsService(bot);
 
 // server
 app.listen(port, function() {

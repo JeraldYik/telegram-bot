@@ -19,6 +19,7 @@ const LTAOpenDataService = (bot) => {
   const apiKey: string = process.env.LTADATAMALL_APIKEY ? process.env.LTADATAMALL_APIKEY : '';
   const _headers: IHeaders = {'AccountKey' : apiKey};
 
+  // surrogate pair calculator: http://www.russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm
   const GREEN_CIRCLE = '\uD83D\uDFE2'; 
   const ORANGE_CIRCLE = '\uD83D\uDFE0';
   const RED_CIRCLE = '\uD83D\uDD34';
