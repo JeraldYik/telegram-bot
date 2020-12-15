@@ -20,22 +20,22 @@ const LTAOpenDataService = (bot) => {
   const _headers: IHeaders = {'AccountKey' : apiKey};
 
   // surrogate pair calculator: http://www.russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm
-  const GREEN_CIRCLE = '\uD83D\uDFE2'; 
-  const ORANGE_CIRCLE = '\uD83D\uDFE0';
-  const RED_CIRCLE = '\uD83D\uDD34';
+  const GREEN_CIRCLE_EMOJI = '\uD83D\uDFE2'; 
+  const ORANGE_CIRCLE_EMOJI = '\uD83D\uDFE0';
+  const RED_CIRCLE_EMOJI = '\uD83D\uDD34';
 
-  bot.onText(/^\/bus (.+)$/, async (msg, match): Promise<void> => {  
-    const busStop = match[1];
-    const chatId = msg.chat.id;
+  bot.command('bus', async (ctx) => {
+    const busStop = ctx.state.command.input;
+    const chatId = ctx.message.chat.id;
     let foundBusStop;
     if (!/^\d{5}$/.test(busStop)) {
       foundBusStop = await fromLandmarkNameToBusStopCode(busStop, _headers);
       if (foundBusStop === '00000') {
-        bot.sendMessage(chatId, 'Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead');
+        ctx.telegram.sendMessage(chatId, 'Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead');
         return;
       } else if (!/^\d{5}$/.test(foundBusStop)) {
         // error
-        bot.sendMessage(chatId, 'There is an error! Please try again.\n' + foundBusStop);
+        ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + foundBusStop);
         return;
       }
     }
@@ -48,9 +48,9 @@ const LTAOpenDataService = (bot) => {
         if (response.data.Services.length > 0) {
           const parsedData = parseData(response.data.Services);
           let s = `Bus Stop #${foundBusStop ? `${foundBusStop} (${busStop})` : busStop}\n`;
-          s += GREEN_CIRCLE + ' Seats Available\n';
-          s += ORANGE_CIRCLE + ' Standing Available\n';
-          s += RED_CIRCLE + ' Limited Standing\n';
+          s += GREEN_CIRCLE_EMOJI + ' Seats Available\n';
+          s += ORANGE_CIRCLE_EMOJI + ' Standing Available\n';
+          s += RED_CIRCLE_EMOJI + ' Limited Standing\n';
           s += '---------------------------\n'
           parsedData.forEach(d => {
             s += `Bus ${d.bus}:\n`;
@@ -58,15 +58,15 @@ const LTAOpenDataService = (bot) => {
               s += n;
             });
           });
-          bot.sendMessage(chatId, s);
+          ctx.telegram.sendMessage(chatId, s);
         } else {
-          bot.sendMessage(chatId, `Bus Stop not found!`);
+          ctx.telegram.sendMessage(chatId, `Bus Stop not found!`);
         }
       } else {
-        bot.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+        ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
       }
     } catch (err) {
-      bot.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+      ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
     }
   });
 
@@ -126,35 +126,33 @@ const LTAOpenDataService = (bot) => {
   const seatsAvailability = (code: string): string => {
     switch (code) {
       case 'SEA':
-        return GREEN_CIRCLE;
+        return GREEN_CIRCLE_EMOJI;
       case 'SDA':
-        return ORANGE_CIRCLE;
+        return ORANGE_CIRCLE_EMOJI;
       case 'LSD':
-        return RED_CIRCLE;
+        return RED_CIRCLE_EMOJI;
       default: 
         return '-';
     }
   }
 
-  bot.onText(/^\/traindown$/, async (msg): Promise<void> => {  
-    const chatId = msg.chat.id;
+  bot.command('traindown', async (ctx) => {
+    const chatId = ctx.message.chat.id;
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/TrainServiceAlerts`;
     try {
       const response = await axios.get(uri, {headers: _headers});
       if (response.status === 200) {  
         if (response.data.value.Status === 1) {
-          bot.sendMessage(chatId, 'No Train Disruption');
+          ctx.telegram.sendMessage(chatId, 'No Train Disruption');
         } else {
-          bot.sendMessage(chatId, 'Please take note...\n' + JSON.stringify(response.data.value));
+          ctx.telegram.sendMessage(chatId, 'Please take note...\n' + JSON.stringify(response.data.value));
         }
       } else {
-        bot.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+        ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
       }
-  
     } catch (err) {
-      bot.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+      ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
     }
-
   });
 }
 

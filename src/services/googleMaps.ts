@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { min } from 'moment';
 import { sleep } from '../helper';
 
 interface ILatLng {
@@ -15,10 +16,10 @@ interface IResult {
 }
 
 const googleMapsService = (bot) => {
-  bot.onText(/^\/food (.+)$/, async (msg, match): Promise<void> => {
+  bot.command('food', async (ctx) => {
     const apiKey = process.env.GOOGLE_APIKEY;
-    const address = match[1];
-    const chatId = msg.chat.id;
+    const address = ctx.state.command.input;
+    const chatId = ctx.message.chat.id;
     let latlng = {} as ILatLng;
 
     /** DOCUMENTATION
@@ -27,7 +28,7 @@ const googleMapsService = (bot) => {
     const geocodeURI = `https://maps.googleapis.com/maps/api/geocode/json?address=${address} Singapore&key=${apiKey}`;
 
     try {
-      bot.sendMessage(chatId, `Querying with input '${address}'`);
+      ctx.telegram.sendMessage(chatId, `Querying with input '${address}'`);
       const response = await axios.get(geocodeURI);
       if (response.status === 200) {    
         if (response.data.status === 'OK') {
@@ -36,13 +37,13 @@ const googleMapsService = (bot) => {
             lng: response.data.results[0].geometry.location.lng,
           }
         } else {
-          bot.sendMessage(chatId, `Error! ${response.data.status}`);
+          ctx.telegram.sendMessage(chatId, `Error! ${response.data.status}`);
         }
       } else {
-        bot.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+        ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
       }
     } catch (err) {
-      bot.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+      ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
     }
 
     if (Object.keys(latlng).length > 0) {
@@ -71,13 +72,13 @@ const googleMapsService = (bot) => {
               // small delay of 2s between each page of results
               await sleep(2000);
             } else {
-              bot.sendMessage(chatId, `Error! ${response.data.status}`);
+              ctx.telegram.sendMessage(chatId, `Error! ${response.data.status}`);
             }
           } else {
-            bot.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+            ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
           }
         } catch (err) {
-          bot.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+          ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
         }
         
         if (nextPageToken === '') break;
@@ -102,31 +103,41 @@ const googleMapsService = (bot) => {
 
         // sort by rating
         parsedResult.sort((a,b) => b.rating - a.rating);
-        const MESSAGE_LIMIT = 20;
-        const STAR = '\u2B50'; 
-        let counter = 1;
+        const MESSAGE_LIMIT: number = 20;
+        const STAR_EMOJI: string = '\u2B50'; 
+        let counter: number = 1;
+        let first: boolean = true;
 
-        bot.sendMessage(chatId, 'Sorted from Top Ratings');
-        let s = '';
+        let header: string = 'Sorted by Top Ratings ...\n';
+        header += 'Parameters:\n';
+        header += `\t\t\tSearch Radius: ${radius/1000}km\n`;
+        header += `\t\t\tRating above: ${rating} ${STAR_EMOJI}\n`;
+        header += `\t\t\tDollar Sign between ${minPrice} and ${maxPrice}\n`;
+        header += `\t\t\tType of Eatery: ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        ctx.telegram.sendMessage(chatId, header);
+
+        let s = `${first ? 'First' : 'Next'}`;
         for (var r of parsedResult) {
           const dollars = '$'.repeat(r.priceLevel);
-          s += r.name + ` (${r.rating} ${STAR}) (${dollars}) <a href='${r.url}'>Link To Maps</a>\n`;
+          s += r.name + ` (${r.rating} ${STAR_EMOJI}) (${dollars}) <a href='${r.url}'>Link To Maps</a>\n`;
           counter++;
           if (counter === MESSAGE_LIMIT) {
-            bot.sendMessage(chatId, s, {parse_mode: 'HTML'});
+            s = `${first ? 'First' : (MESSAGE_LIMIT === parsedResult.length ? 'The' : 'Next')} <b>${counter}</b> results:\n` + s;
+            first = false;
+            ctx.telegram.sendMessage(chatId, s, {parse_mode: 'HTML'});
             counter = 1;
             s = '';
             // sending of message is async and a shorter message causes this message to be sent first 
             await sleep(1000);
           } 
         };
-        s !== '' ? bot.sendMessage(chatId, s, {parse_mode: 'HTML'}) : undefined;
+        s = `${first ? 'The' : 'Next'} <b>${counter}</b> results:\n` + s;
+        s !== '' ? ctx.telegram.sendMessage(chatId, s, {parse_mode: 'HTML'}) : undefined;
 
       } else {
-        bot.sendMessage(chatId, 'Searched address did not return any results. Please try again with another input or reformat your input.', {parse_mode: 'HTML'});
+        ctx.telegram.sendMessage(chatId, 'Searched address did not return any results. Please try again with another input or reformat your input.', {parse_mode: 'HTML'});
       }
     }
-
   });
 }
 
