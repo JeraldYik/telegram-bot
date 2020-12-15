@@ -4,58 +4,49 @@ import googleMapsService from './services/googleMaps';
 
 require('dotenv').config();
 
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-app.use(bodyParser.json());
-
-const port = process.env.PORT || 8080;
-
 /** DOCUMENTATION:
  * https://github.com/yagop/node-telegram-bot-api
+ * https://telegraf.js.org/
  */
 
-const TelegramBot = require('node-telegram-bot-api');
+const { Telegraf } = require('telegraf');
+const Koa = require('koa');
+// body-parser
+const koaBody = require('koa-body');
+const app = new Koa();
+app.use(koaBody());
+
+const port = process.env.PORT || 3000;
 const token = process.env.TELEGRAM_APIKEY;
-let bot;
+let bot = new Telegraf(token);
 // for deployment
 if (process.env.NODE_ENV === 'production') {
-  bot = new TelegramBot(token);
-  bot.setWebHook(process.env.HEROKU_URL + bot.token);
+  bot.telegram.setWebhook(process.env.HEROKU_URL + bot.token);
 } else {
-  bot = new TelegramBot(token, { polling: true });
+  bot.launch();
+  // test
+ 
 }
-
-// test
-bot.onText(/\/echo (.+)/, (msg, match): void => {
-  const chatId = msg.chat.id;
-  const resp = match[1]; 
-
-  // const inlineKeyboardMarkup = TelegramBot.InlineKeyboardMarkup;
-  // const inlineKeyboardButton = TelegramBot.InlineKeyboardButton;
-  // bot.sendMessage(chatId, resp, {reply_markup: inlineKeyboardMarkup(
-  //   [[inlineKeyboardButton('inline button')]]
-  // ), callback_data: 'hello'});
-  bot.sendMessage(chatId, resp);
+bot.command('echo', (ctx) => {
+  ctx.telegram.sendMessage(ctx.message.chat.id, ctx.message.text.substring(6));
 });
-
-// bot.on("polling_error", console.log);
-
 // movie
-movieService(bot);
+// movieService(bot);
 
 // next bus
-LTAOpenDataService(bot);
+// LTAOpenDataService(bot);
 
 // google food
-googleMapsService(bot);
+// googleMapsService(bot);
 
 // server
-app.listen(port, function() {
-  console.log(`Listening on http://localhost:${port}`);
-});
+app.use(async (ctx) => {
+  // TODO: write re-direction to telegram app
+  ctx.body = 'Use Telegram App instead of Web Page'; 
+  await bot.handleUpdate(ctx.request.body, ctx.response);
+  ctx.status = 200;
+})
 
-app.post('/' + bot.token, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
+app.listen(port, () => {
+  console.log(`App listening on port ${port}`);
 });

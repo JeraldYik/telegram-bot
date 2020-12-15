@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { parse } from 'dotenv/types';
 import { sleep } from '../helper';
 
 interface ILatLng {
@@ -16,7 +15,7 @@ interface IResult {
 }
 
 const googleMapsService = (bot) => {
-  bot.onText(/\/food (.+)/, async (msg, match): Promise<void> => {
+  bot.onText(/^\/food (.+)$/, async (msg, match): Promise<void> => {
     const apiKey = process.env.GOOGLE_APIKEY;
     const address = match[1];
     const chatId = msg.chat.id;
@@ -104,14 +103,14 @@ const googleMapsService = (bot) => {
         // sort by rating
         parsedResult.sort((a,b) => b.rating - a.rating);
         const MESSAGE_LIMIT = 20;
-        const WHITE_STAR = '\u2B50'; 
+        const STAR = '\u2B50'; 
         let counter = 1;
 
         bot.sendMessage(chatId, 'Sorted from Top Ratings');
         let s = '';
         for (var r of parsedResult) {
           const dollars = '$'.repeat(r.priceLevel);
-          s += r.name + ` (${r.rating} ${WHITE_STAR}) (${dollars}) <a href='${r.url}'>Link To Maps</a>\n`;
+          s += r.name + ` (${r.rating} ${STAR}) (${dollars}) <a href='${r.url}'>Link To Maps</a>\n`;
           counter++;
           if (counter === MESSAGE_LIMIT) {
             bot.sendMessage(chatId, s, {parse_mode: 'HTML'});
@@ -119,9 +118,7 @@ const googleMapsService = (bot) => {
             s = '';
             // sending of message is async and a shorter message causes this message to be sent first 
             await sleep(1000);
-          } else {
-            // s += '\n';
-          }
+          } 
         };
         s !== '' ? bot.sendMessage(chatId, s, {parse_mode: 'HTML'}) : undefined;
 

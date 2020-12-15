@@ -24,7 +24,7 @@ const LTAOpenDataService = (bot) => {
   const ORANGE_CIRCLE = '\uD83D\uDFE0';
   const RED_CIRCLE = '\uD83D\uDD34';
 
-  bot.onText(/\/bus (.+)/, async (msg, match): Promise<void> => {  
+  bot.onText(/^\/bus (.+)$/, async (msg, match): Promise<void> => {  
     const busStop = match[1];
     const chatId = msg.chat.id;
     let foundBusStop;
@@ -136,7 +136,7 @@ const LTAOpenDataService = (bot) => {
     }
   }
 
-  bot.onText(/\/traindown/, async (msg): Promise<void> => {  
+  bot.onText(/^\/traindown$/, async (msg): Promise<void> => {  
     const chatId = msg.chat.id;
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/TrainServiceAlerts`;
     try {
