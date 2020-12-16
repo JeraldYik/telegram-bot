@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { min } from 'moment';
 import { sleep } from '../helper';
 
 interface ILatLng {
@@ -15,11 +14,10 @@ interface IResult {
   url: string
 }
 
-const googleMapsService = (bot) => {
+const googleMapsService = (bot, Markup, Extra) => {
   bot.command('food', async (ctx) => {
     const apiKey = process.env.GOOGLE_APIKEY;
     const address = ctx.state.command.input;
-    const chatId = ctx.message.chat.id;
     let latlng = {} as ILatLng;
 
     /** DOCUMENTATION
@@ -28,7 +26,7 @@ const googleMapsService = (bot) => {
     const geocodeURI = `https://maps.googleapis.com/maps/api/geocode/json?address=${address} Singapore&key=${apiKey}`;
 
     try {
-      ctx.telegram.sendMessage(chatId, `Querying with input '${address}'`);
+      ctx.reply(`Querying with input '${address}'`);
       const response = await axios.get(geocodeURI);
       if (response.status === 200) {    
         if (response.data.status === 'OK') {
@@ -37,13 +35,13 @@ const googleMapsService = (bot) => {
             lng: response.data.results[0].geometry.location.lng,
           }
         } else {
-          ctx.telegram.sendMessage(chatId, `Error! ${response.data.status}`);
+          ctx.reply(`Error! ${response.data.status}`);
         }
       } else {
-        ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+        ctx.reply('There is an Error!\nReponse Code: ' + response.status.toString());
       }
     } catch (err) {
-      ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+      ctx.reply('There is an error! Please try again.\n' + err.toString());
     }
 
     if (Object.keys(latlng).length > 0) {
@@ -53,12 +51,25 @@ const googleMapsService = (bot) => {
       // default settings
       let radius: number = 2000;
       let rating: number = 3.5;
-      let minPrice: number = 0;
+      let minPrice: number = 1;
       let maxPrice: number = 2;
       let type: string = 'restaurant';
       let results = [] as any;
       let nextPageToken: string = '';
       let counter: number = 1; 
+
+      /**
+      // ask for 'restaurant' or 'cafe'
+      const inlineEateryTypeKeyboard = Markup.inlineKeyboard([
+        Markup.callbackButton('Restaurant', 'restaurant'),
+        Markup.callbackButton('Café', 'cafe')
+      ]).extra();
+
+      ctx.reply('What kind of Eatery?', inlineEateryTypeKeyboard);
+
+      bot.action('restaurant', () => type = 'restaurant');
+      bot.action('cafe', () => type = 'cafe');
+       */
 
       // max results returned = 20 * 3
       while (counter <= 3) {
@@ -72,13 +83,13 @@ const googleMapsService = (bot) => {
               // small delay of 2s between each page of results
               await sleep(2000);
             } else {
-              ctx.telegram.sendMessage(chatId, `Error! ${response.data.status}`);
+              ctx.reply(`Error! ${response.data.status}`);
             }
           } else {
-            ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+            ctx.reply('There is an Error!\nReponse Code: ' + response.status.toString());
           }
         } catch (err) {
-          ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+          ctx.reply('There is an error! Please try again.\n' + err.toString());
         }
         
         if (nextPageToken === '') break;
@@ -89,7 +100,7 @@ const googleMapsService = (bot) => {
         let parsedResult = [] as Array<IResult>;
         results.forEach(r => {
           if (r.rating >= rating) {
-            const _url = `https://www.google.com/maps/place/?q=place_id:${r['place_id']}`;
+            const _url = `https://www.google.com/maps/search/?api=1&query=${latlng.lat},${latlng.lng}&query_place_id=${r['place_id']}`;
             const result: IResult = {
               name: r.name,
               rating: r.rating,
@@ -114,7 +125,7 @@ const googleMapsService = (bot) => {
         header += `\t\t\tRating above: ${rating} ${STAR_EMOJI}\n`;
         header += `\t\t\tDollar Sign between ${minPrice} and ${maxPrice}\n`;
         header += `\t\t\tType of Eatery: ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-        ctx.telegram.sendMessage(chatId, header);
+        ctx.reply(header);
 
         let s = `${first ? 'First' : 'Next'}`;
         for (var r of parsedResult) {
@@ -124,18 +135,20 @@ const googleMapsService = (bot) => {
           if (counter === MESSAGE_LIMIT) {
             s = `${first ? 'First' : (MESSAGE_LIMIT === parsedResult.length ? 'The' : 'Next')} <b>${counter}</b> results:\n` + s;
             first = false;
-            ctx.telegram.sendMessage(chatId, s, {parse_mode: 'HTML'});
+            ctx.reply(s, Extra.HTML().webPreview(false));
             counter = 1;
             s = '';
             // sending of message is async and a shorter message causes this message to be sent first 
             await sleep(1000);
           } 
+          s += '\n';
         };
         s = `${first ? 'The' : 'Next'} <b>${counter}</b> results:\n` + s;
-        s !== '' ? ctx.telegram.sendMessage(chatId, s, {parse_mode: 'HTML'}) : undefined;
+        // remove trailing \n
+        s !== '' ? ctx.reply(s.substring(0, s.length-1), Extra.HTML().webPreview(false)) : undefined;
 
       } else {
-        ctx.telegram.sendMessage(chatId, 'Searched address did not return any results. Please try again with another input or reformat your input.', {parse_mode: 'HTML'});
+        ctx.reply('Searched address did not return any results. Please try again with another input or reformat your input.', {parse_mode: 'HTML'});
       }
     }
   });

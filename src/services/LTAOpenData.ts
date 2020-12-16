@@ -15,7 +15,7 @@ interface IParsedData {
   nextArrival: Array<string>;
 }
 
-const LTAOpenDataService = (bot) => {
+const LTAOpenDataService = (bot, Extra) => {
   const apiKey: string = process.env.LTADATAMALL_APIKEY ? process.env.LTADATAMALL_APIKEY : '';
   const _headers: IHeaders = {'AccountKey' : apiKey};
 
@@ -26,16 +26,15 @@ const LTAOpenDataService = (bot) => {
 
   bot.command('bus', async (ctx) => {
     const busStop = ctx.state.command.input;
-    const chatId = ctx.message.chat.id;
     let foundBusStop;
     if (!/^\d{5}$/.test(busStop)) {
       foundBusStop = await fromLandmarkNameToBusStopCode(busStop, _headers);
       if (foundBusStop === '00000') {
-        ctx.telegram.sendMessage(chatId, 'Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead');
+        ctx.reply('Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead');
         return;
       } else if (!/^\d{5}$/.test(foundBusStop)) {
         // error
-        ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + foundBusStop);
+        ctx.reply('There is an error! Please try again.\n' + foundBusStop);
         return;
       }
     }
@@ -53,20 +52,20 @@ const LTAOpenDataService = (bot) => {
           s += RED_CIRCLE_EMOJI + ' Limited Standing\n';
           s += '---------------------------\n'
           parsedData.forEach(d => {
-            s += `Bus ${d.bus}:\n`;
+            s += `Bus <b>${d.bus}</b>:\n`;
             d.nextArrival.forEach(n => {
               s += n;
             });
           });
-          ctx.telegram.sendMessage(chatId, s);
+          ctx.reply(s, Extra.HTML());
         } else {
-          ctx.telegram.sendMessage(chatId, `Bus Stop not found!`);
+          ctx.reply(`Bus Stop not found!`);
         }
       } else {
-        ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+        ctx.reply('There is an Error!\nReponse Code: ' + response.status.toString());
       }
     } catch (err) {
-      ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+      ctx.reply('There is an error! Please try again.\n' + err.toString());
     }
   });
 
@@ -137,21 +136,20 @@ const LTAOpenDataService = (bot) => {
   }
 
   bot.command('traindown', async (ctx) => {
-    const chatId = ctx.message.chat.id;
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/TrainServiceAlerts`;
     try {
       const response = await axios.get(uri, {headers: _headers});
       if (response.status === 200) {  
         if (response.data.value.Status === 1) {
-          ctx.telegram.sendMessage(chatId, 'No Train Disruption');
+          ctx.reply('No Train Disruption');
         } else {
-          ctx.telegram.sendMessage(chatId, 'Please take note...\n' + JSON.stringify(response.data.value));
+          ctx.reply('Please take note...\n' + JSON.stringify(response.data.value));
         }
       } else {
-        ctx.telegram.sendMessage(chatId, 'There is an Error!\nReponse Code: ' + response.status.toString());
+        ctx.reply('There is an Error!\nReponse Code: ' + response.status.toString());
       }
     } catch (err) {
-      ctx.telegram.sendMessage(chatId, 'There is an error! Please try again.\n' + err.toString());
+      ctx.reply('There is an error! Please try again.\n' + err.toString());
     }
   });
 }

@@ -11,9 +11,7 @@ require('dotenv').config();
  * https://telegraf.js.org/
  */
 
-
-
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup, Extra } = require('telegraf');
 const Koa = require('koa');
 // body-parser
 const koaBody = require('koa-body');
@@ -30,20 +28,23 @@ if (process.env.NODE_ENV === 'production') {
   bot.telegram.setWebhook(process.env.HEROKU_URL + bot.token);
 } else {
   bot.launch();
-  // test
   bot.command('echo', (ctx) => {
-    ctx.telegram.sendMessage(ctx.message.chat.id, ctx.state.command.input);
+    if (ctx.state.command.input) {
+      ctx.reply(ctx.state.command.input);
+    } else {
+      ctx.reply('Input is empty');
+    }
   });
 }
 
 // movie
-movieService(bot);
+movieService(bot, Markup);
 
 // next bus
-LTAOpenDataService(bot);
+LTAOpenDataService(bot, Extra);
 
 // google food
-googleMapsService(bot);
+googleMapsService(bot, Markup, Extra);
 
 // server
 app.use(async (ctx, next) => {
