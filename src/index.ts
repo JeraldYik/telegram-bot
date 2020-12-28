@@ -49,7 +49,7 @@ googleMapsService(bot, Markup, Extra);
 // server
 app.use(async (ctx, next) => {
   // TODO: write re-direction to telegram app
-  ctx.body = 'Use Telegram App instead of Web Page'; 
+  ctx.redirect('https://t.me/jyik001_test_bot')
   await bot.handleUpdate(ctx.request.body, ctx.response);
   ctx.status = 200;
   return next();
