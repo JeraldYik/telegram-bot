@@ -1,6 +1,7 @@
 import movieService from './services/movie';
 import LTAOpenDataService from './services/LTAOpenData';
 import googleMapsService from './services/googleMaps';
+import firebaseService from './services/firebase';
 
 import messageParser from './middlewares/messageParser';
 
@@ -45,6 +46,9 @@ LTAOpenDataService(bot, Extra);
 
 // google food
 googleMapsService(bot, Markup, Extra);
+
+// firebase (favourite bus list)
+firebaseService(bot);
 
 // server
 app.use(async (ctx, next) => {
