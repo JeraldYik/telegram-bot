@@ -44,18 +44,17 @@ const firebaseService = (bot) => {
   });
 
   bot.command('addbusstop', async (ctx) => {
-    const input = ctx.contextState.command.input.split(' ');
+    const input = ctx.contextState.command.input;
     try {
-      // check if user input only has bus stop code and description
-      if (input.length !== 2) throw new Error('malformed-input');
       // check if bus stop code is a 5-digit number
-      const regex = /^[0-9]{5}$/
-      if (!regex.test(input[0])) throw new Error('malformed-input');
-      
+      const regex = /^[0-9]{5}\s/
+      if (!regex.test(input)) throw new Error('malformed-input');
+      const code = input.slice(0,5);
+      const description = input.slice(6,input.length);
       firebase.database().ref(FAVOURITES_LIST).update({
-        [input[0]]: input[1]
+        [code]: description
       });
-      ctx.reply(`'#${input[0]} - ${input[1]}' successfully added/updated.`)
+      ctx.reply(`'#${code} - ${description}' successfully added/updated.`)
     } catch (error) {
       if (error.toString() === 'Error: malformed-input') {
         ctx.reply('Malformed input! Please type your input in the form of\n/addbusstop <bus-stop-code> <description>');
