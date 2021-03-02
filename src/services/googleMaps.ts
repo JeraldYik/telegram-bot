@@ -52,7 +52,7 @@ const googleMapsService = (bot, Markup, Extra) => {
 
     if (Object.keys(latlng).length > 0) {
       /** DOCUMENTATION
-       *  https://developers.google.com/places/web-service/search#FindPlaceRequests
+       *  https://developers.google.com/places/web-service/search#PlaceSearchRequests
        */
       // default settings
       let radius: number = 2000;
