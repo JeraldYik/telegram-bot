@@ -1,10 +1,10 @@
 const fs = require('fs');
 
-export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms: number): Promise<any> => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const writeToFile = (pathOfFile: string, data: string): void => {
   fs.writeFileSync(pathOfFile, data);
-}
+};
 
 export const readFromFile = (pathOfFile: string, deleteFile: boolean): any => {
   const data = fs.readFileSync(pathOfFile).toString();
@@ -12,8 +12,7 @@ export const readFromFile = (pathOfFile: string, deleteFile: boolean): any => {
   const regex = /^{.*}$/;
   deleteFile ? fs.unlinkSync(pathOfFile) : null;
   return regex.test(data) ? JSON.parse(data) : data;
-}
-
+};
 
 // export const onCallback = (bot: any, params: Array<string>, callback: (ctx, returnValue: string, misc)=>{}, misc): void => {
 //   bot.on('callback_query', ctx => {
@@ -26,4 +25,4 @@ export const readFromFile = (pathOfFile: string, deleteFile: boolean): any => {
 //       callback(ctx, params[0], misc);
 //     }
 //   });
-// }  
+// }

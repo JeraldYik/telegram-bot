@@ -8,23 +8,23 @@ import moment from 'moment';
 const MAX_NEXTBUS = 2;
 
 interface IHeaders {
-  'AccountKey': string
+  AccountKey: string;
 }
 interface IParsedData {
-  bus: string,
+  bus: string;
   nextArrival: Array<string>;
 }
 
 interface IBusBerth {
-  [bus: string]: number
+  [bus: string]: number;
 }
 
 const LTAOpenDataService = (bot, Extra) => {
   const apiKey: string = process.env.LTADATAMALL_APIKEY ? process.env.LTADATAMALL_APIKEY : '';
-  const _headers: IHeaders = {'AccountKey' : apiKey};
+  const _headers: IHeaders = { AccountKey: apiKey };
 
   // surrogate pair calculator: http://www.russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm
-  const GREEN_CIRCLE_EMOJI = '\uD83D\uDFE2'; 
+  const GREEN_CIRCLE_EMOJI = '\uD83D\uDFE2';
   const ORANGE_CIRCLE_EMOJI = '\uD83D\uDFE0';
   const RED_CIRCLE_EMOJI = '\uD83D\uDD34';
 
@@ -34,7 +34,9 @@ const LTAOpenDataService = (bot, Extra) => {
     if (!/^\d{5}$/.test(busStop)) {
       foundBusStop = await fromLandmarkNameToBusStopCode(busStop, _headers);
       if (foundBusStop === '00000') {
-        ctx.reply('Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead');
+        ctx.reply(
+          'Bus Stop Name/Road cannot be found from API call or Bus Services ceased to service the input bus stop/road for today\nPlease try again tomorrow or use Bus Stop Code instead'
+        );
         return;
       } else if (!/^\d{5}$/.test(foundBusStop)) {
         // error
@@ -42,22 +44,22 @@ const LTAOpenDataService = (bot, Extra) => {
         return;
       }
     }
-    
+
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${foundBusStop ? foundBusStop : busStop}`;
-    
+
     try {
-      const response = await axios.get(uri, {headers: _headers});
-      if (response.status === 200) {    
+      const response = await axios.get(uri, { headers: _headers });
+      if (response.status === 200) {
         if (response.data.Services.length > 0) {
           const parsedData = parseData(response.data.Services);
           let s = `Bus Stop #${foundBusStop ? `${foundBusStop} (${busStop})` : busStop}\n`;
           s += GREEN_CIRCLE_EMOJI + ' Seats Available\n';
           s += ORANGE_CIRCLE_EMOJI + ' Standing Available\n';
           s += RED_CIRCLE_EMOJI + ' Limited Standing\n';
-          s += '---------------------------\n'
-          parsedData.forEach(d => {
+          s += '---------------------------\n';
+          parsedData.forEach((d) => {
             s += `Bus <b>${d.bus}</b>:\n`;
-            d.nextArrival.forEach(n => {
+            d.nextArrival.forEach((n) => {
               s += n;
             });
           });
@@ -74,7 +76,7 @@ const LTAOpenDataService = (bot, Extra) => {
   });
 
   bot.command('1', async (ctx) => {
-    const WOODLANDS_BUS_INTERCHANGE = '46009'
+    const WOODLANDS_BUS_INTERCHANGE = '46009';
     // ! dynamic & prone to error: to monitor and update
     // https://landtransportguru.net/woodlands-integrated-transport-hub/
     // read comment by "Transport wonderer", "Chanyeol"
@@ -86,22 +88,24 @@ const LTAOpenDataService = (bot, Extra) => {
       '961': 8,
       '963': 9,
       '966': 11
-    }
-    const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${WOODLANDS_BUS_INTERCHANGE}`
+    };
+    const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${WOODLANDS_BUS_INTERCHANGE}`;
     try {
-      const response = await axios.get(uri, {headers: _headers});
-      if (response.status === 200) {    
+      const response = await axios.get(uri, { headers: _headers });
+      if (response.status === 200) {
         if (response.data.Services.length > 0) {
           const parsedData = parseData(response.data.Services);
-          const filteredAndSortedData = parsedData.filter(data => Object.keys(BUSES).includes(data.bus)).sort((a,b) => BUSES[a.bus] - BUSES[b.bus])
+          const filteredAndSortedData = parsedData
+            .filter((data) => Object.keys(BUSES).includes(data.bus))
+            .sort((a, b) => BUSES[a.bus] - BUSES[b.bus]);
           let s = `Woodlands Bus Interchange #${WOODLANDS_BUS_INTERCHANGE}\n`;
           s += GREEN_CIRCLE_EMOJI + ' Seats Available\n';
           s += ORANGE_CIRCLE_EMOJI + ' Standing Available\n';
           s += RED_CIRCLE_EMOJI + ' Limited Standing\n';
-          s += '---------------------------\n'
-          filteredAndSortedData.forEach(d => {
+          s += '---------------------------\n';
+          filteredAndSortedData.forEach((d) => {
             s += `Bus <b>${d.bus}</b> (B${BUSES[d.bus]}):\n`;
-            d.nextArrival.forEach(n => {
+            d.nextArrival.forEach((n) => {
               s += n;
             });
           });
@@ -119,25 +123,25 @@ const LTAOpenDataService = (bot, Extra) => {
 
   const fromLandmarkNameToBusStopCode = async (landmark: string, _headers: IHeaders): Promise<string> => {
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusStops`;
-    landmark = landmark.replace(/[ ,.']/g, "").toLowerCase();
+    landmark = landmark.replace(/[ ,.']/g, '').toLowerCase();
 
     try {
-      const response = await axios.get(uri, {headers: _headers});
-      if (response.status === 200) {  
+      const response = await axios.get(uri, { headers: _headers });
+      if (response.status === 200) {
         if (response.data.value.length > 0) {
           for (var o of response.data.value) {
-            if (o.Description.replace(/[ ,.']/g, "").toLowerCase() === landmark) {
+            if (o.Description.replace(/[ ,.']/g, '').toLowerCase() === landmark) {
               return o.BusStopCode;
             }
-          };
+          }
           // resort to finding by street name
           for (var o of response.data.value) {
-            if (o.RoadName.replace(/[ ,.']/g, "").toLowerCase() === landmark) {
+            if (o.RoadName.replace(/[ ,.']/g, '').toLowerCase() === landmark) {
               return o.BusStopCode;
             }
-          };
-        } 
-      } 
+          }
+        }
+      }
     } catch (err) {
       return err.toString();
     }
@@ -147,15 +151,15 @@ const LTAOpenDataService = (bot, Extra) => {
 
   const parseData = (data: Array<any>): Array<IParsedData> => {
     const returnArr: Array<IParsedData> = [];
-    data.forEach(d => {
+    data.forEach((d) => {
       const aux: IParsedData = {} as IParsedData;
       const keys = Object.keys(d);
       let count = 1;
-      aux.bus = d.ServiceNo; 
+      aux.bus = d.ServiceNo;
       aux.nextArrival = [];
       // API returns 3 next buses
-      for(var i=2; i<2+3; i++) {
-        if(count <= MAX_NEXTBUS && i <= keys.length) {
+      for (var i = 2; i < 2 + 3; i++) {
+        if (count <= MAX_NEXTBUS && i <= keys.length) {
           const nextTime = moment(d[keys[i]].EstimatedArrival);
           // to ignore buses that already left
           if (nextTime.diff(moment()) > 0) {
@@ -168,7 +172,7 @@ const LTAOpenDataService = (bot, Extra) => {
       returnArr.push(aux);
     });
     return returnArr;
-  }
+  };
 
   const seatsAvailability = (code: string): string => {
     switch (code) {
@@ -178,16 +182,16 @@ const LTAOpenDataService = (bot, Extra) => {
         return ORANGE_CIRCLE_EMOJI;
       case 'LSD':
         return RED_CIRCLE_EMOJI;
-      default: 
+      default:
         return '-';
     }
-  }
+  };
 
   bot.command('traindown', async (ctx) => {
     const uri = `http://datamall2.mytransport.sg/ltaodataservice/TrainServiceAlerts`;
     try {
-      const response = await axios.get(uri, {headers: _headers});
-      if (response.status === 200) {  
+      const response = await axios.get(uri, { headers: _headers });
+      if (response.status === 200) {
         if (response.data.value.Status === 1) {
           ctx.reply('No Train Disruption');
         } else {
@@ -200,8 +204,6 @@ const LTAOpenDataService = (bot, Extra) => {
       ctx.reply('There is an error! Please try again.\n' + err.toString());
     }
   });
-}
+};
 
 export default LTAOpenDataService;
-
-

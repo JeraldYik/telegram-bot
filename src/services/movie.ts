@@ -8,9 +8,12 @@ const movieService = (bot, Markup) => {
     try {
       ctx.reply(`Querying for '${ctx.state.command.input}'`);
       const response = await axios.get(uri);
-      if (response.status === 200) {    
+      if (response.status === 200) {
         if (response.data.Response === 'True') {
-          ctx.replyWithPhoto({url: response.data.Poster}, {caption: `Result:\nTitle: ${response.data.Title}\nYear: ${response.data.Year}\nReleased: ${response.data.Released}`});
+          ctx.replyWithPhoto(
+            { url: response.data.Poster },
+            { caption: `Result:\nTitle: ${response.data.Title}\nYear: ${response.data.Year}\nReleased: ${response.data.Released}` }
+          );
         } else {
           ctx.reply(`Error! ${response.data.Error}`);
         }
@@ -21,6 +24,6 @@ const movieService = (bot, Markup) => {
       ctx.reply('There is an error! Please try again.\n' + err.toString());
     }
   });
-}
+};
 
 export default movieService;

@@ -52,11 +52,11 @@ firebaseService(bot);
 
 // server
 app.use(async (ctx, next) => {
-  ctx.redirect('https://t.me/jyik001_test_bot')
+  ctx.redirect('https://t.me/jyik001_test_bot');
   await bot.handleUpdate(ctx.request.body, ctx.response);
   ctx.status = 200;
   return next();
-})
+});
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);

@@ -10,10 +10,10 @@ const messageParser = () => (ctx, next) => {
         raw: text,
         command,
         input
-      }
+      };
     }
   }
   return next();
-}
+};
 
 export default messageParser;
