@@ -15,6 +15,10 @@ interface IParsedData {
   nextArrival: Array<string>;
 }
 
+interface IBusBerth {
+  [bus: string]: number
+}
+
 const LTAOpenDataService = (bot, Extra) => {
   const apiKey: string = process.env.LTADATAMALL_APIKEY ? process.env.LTADATAMALL_APIKEY : '';
   const _headers: IHeaders = {'AccountKey' : apiKey};
@@ -53,6 +57,48 @@ const LTAOpenDataService = (bot, Extra) => {
           s += '---------------------------\n'
           parsedData.forEach(d => {
             s += `Bus <b>${d.bus}</b>:\n`;
+            d.nextArrival.forEach(n => {
+              s += n;
+            });
+          });
+          ctx.reply(s, Extra.HTML());
+        } else {
+          ctx.reply(`Bus Stop not found!`);
+        }
+      } else {
+        ctx.reply('There is an Error!\nReponse Code: ' + response.status.toString());
+      }
+    } catch (err) {
+      ctx.reply('There is an error! Please try again.\n' + err.toString());
+    }
+  });
+
+  bot.command('1', async (ctx) => {
+    const WOODLANDS_BUS_INTERCHANGE = '46009'
+    // ! dynamic & prone to error: to monitor and update
+    const BUSES: IBusBerth = {
+      '187': 9,
+      '856': 10,
+      '925': 8,
+      '960': 14,
+      '961': 8,
+      '963': 9,
+      '966': 11
+    }
+    const uri = `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${WOODLANDS_BUS_INTERCHANGE}`
+    try {
+      const response = await axios.get(uri, {headers: _headers});
+      if (response.status === 200) {    
+        if (response.data.Services.length > 0) {
+          const parsedData = parseData(response.data.Services);
+          const filteredAndSortedData = parsedData.filter(data => Object.keys(BUSES).includes(data.bus)).sort((a,b) => BUSES[a.bus] - BUSES[b.bus])
+          let s = `Woodlands Bus Interchange #${WOODLANDS_BUS_INTERCHANGE}\n`;
+          s += GREEN_CIRCLE_EMOJI + ' Seats Available\n';
+          s += ORANGE_CIRCLE_EMOJI + ' Standing Available\n';
+          s += RED_CIRCLE_EMOJI + ' Limited Standing\n';
+          s += '---------------------------\n'
+          filteredAndSortedData.forEach(d => {
+            s += `Bus <b>${d.bus}</b> (B${BUSES[d.bus]}):\n`;
             d.nextArrival.forEach(n => {
               s += n;
             });
