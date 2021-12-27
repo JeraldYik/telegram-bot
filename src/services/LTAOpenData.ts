@@ -76,6 +76,8 @@ const LTAOpenDataService = (bot, Extra) => {
   bot.command('1', async (ctx) => {
     const WOODLANDS_BUS_INTERCHANGE = '46009'
     // ! dynamic & prone to error: to monitor and update
+    // https://landtransportguru.net/woodlands-integrated-transport-hub/
+    // read comment by "Transport wonderer", "Chanyeol"
     const BUSES: IBusBerth = {
       '187': 9,
       '856': 10,
