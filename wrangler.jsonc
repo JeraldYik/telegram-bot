@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mcc-rewards-bot",
+  "main": "src/main.py",
+  "compatibility_date": "2026-09-06",
+  "compatibility_flags": [
+    "python_workers"
+  ]
+}
