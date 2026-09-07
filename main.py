@@ -2,12 +2,9 @@ import json
 import os
 from typing import Optional
 
-try:
-    from formatter import format_mcc_response
-    from matcher import match_mcc
-except ModuleNotFoundError:
-    from src.formatter import format_mcc_response
-    from src.matcher import match_mcc
+from formatter import format_mcc_response
+from matcher import match_mcc
+from workers import Response, WorkerEntrypoint
 
 
 def parse_mcc_command(text: str) -> Optional[int]:
@@ -75,13 +72,8 @@ async def send_message(token: str, chat_id: int, text: str):
     )
 
 
-class Default:
-    def __init__(self, env):
-        self.env = env
-
+class Default(WorkerEntrypoint):
     async def fetch(self, request):
-        from workers import Response
-
         if request.method == "GET":
             return Response("OK")
 

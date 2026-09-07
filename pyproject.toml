@@ -5,8 +5,15 @@ description = "Telegram MCC credit card rewards lookup bot"
 requires-python = ">=3.13"
 dependencies = []
 
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "cards", "matcher", "formatter"]
+
 [dependency-groups]
 dev = [
-    "workers-py",
+    "workers-py>=1.9",
     "workers-runtime-sdk",
 ]

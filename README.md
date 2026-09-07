@@ -22,10 +22,10 @@ It is deployed as a Cloudflare Python Worker behind a Telegram webhook.
 
 ## Project structure
 
-- `src/entry.py` — webhook entrypoint and command routing
-- `src/cards.py` — static MCC data and card mappings
-- `src/matcher.py` — card matching logic
-- `src/formatter.py` — Telegram response formatting
+- `main.py` — webhook entrypoint and command routing
+- `cards.py` — static MCC data and card mappings
+- `matcher.py` — card matching logic
+- `formatter.py` — Telegram response formatting
 - `tests/test_matcher.py` — matcher unit tests
 - `wrangler.jsonc` — Cloudflare Worker config
 - `pyproject.toml` — Python project metadata

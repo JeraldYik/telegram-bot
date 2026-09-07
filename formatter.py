@@ -1,4 +1,4 @@
-from src.cards import CardResult, Status
+from cards import CardResult, Status
 
 
 STATUS_ICON = {

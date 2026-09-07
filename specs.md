@@ -76,11 +76,10 @@ The normal request path should contain no database lookup or external rewards AP
 
 4. Repository Structure
 mcc-bot/
-├── src/
-│   ├── entry.py
-│   ├── cards.py
-│   ├── matcher.py
-│   └── formatter.py
+├── main.py
+├── cards.py
+├── matcher.py
+├── formatter.py
 │
 ├── tests/
 │   └── test_matcher.py
@@ -637,7 +636,7 @@ Banks may apply additional rules based on payment method,
 merchant classification, transaction type, minimum spend,
 monthly caps and other exclusions.
 
-25. src/cards.py
+25. cards.py
 from dataclasses import dataclass
 from enum import Enum
 
@@ -743,7 +742,7 @@ def find_maybank_categories(mcc: int) -> list[str]:
 
     return categories
 
-26. src/matcher.py
+26. matcher.py
 from cards import (
     CardResult,
     Status,
@@ -867,7 +866,7 @@ def match_mcc(mcc: int) -> list[CardResult]:
         match_maybank(mcc),
     ]
 
-27. src/formatter.py
+27. formatter.py
 from cards import CardResult, Status
 
 
@@ -932,7 +931,7 @@ def format_mcc_response(
 
     return "\n".join(lines)
 
-28. src/entry.py
+28. main.py
 import json
 
 from js import fetch, Headers
@@ -1115,7 +1114,7 @@ class Default(WorkerEntrypoint):
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "mcc-rewards-bot",
-  "main": "src/entry.py",
+    "main": "main.py",
   "compatibility_date": "2026-09-06",
   "compatibility_flags": [
     "python_workers"

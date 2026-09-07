@@ -1,5 +1,5 @@
-from src.matcher import match_mcc
-from src.cards import Status
+from matcher import match_mcc
+from cards import Status
 
 
 def test_5812():

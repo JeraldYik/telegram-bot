@@ -1,4 +1,4 @@
-from src.cards import (
+from cards import (
     CardResult,
     Status,
     UOB_PREFERRED_ONLINE_MCCS,
