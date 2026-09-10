@@ -67,7 +67,7 @@ Register the webhook:
 ```bash
 curl -X POST \
   "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-  -d "url=https://mcc-rewards-bot.<subdomain>.workers.dev" \
+  -d "url=https://telegram-bot.<subdomain>.workers.dev" \
   -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}"
 ```
 

@@ -1113,7 +1113,7 @@ class Default(WorkerEntrypoint):
 29. wrangler.jsonc
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "mcc-rewards-bot",
+  "name": "telegram-bot",
     "main": "main.py",
   "compatibility_date": "2026-09-06",
   "compatibility_flags": [
@@ -1123,7 +1123,7 @@ class Default(WorkerEntrypoint):
 
 30. pyproject.toml
 [project]
-name = "mcc-rewards-bot"
+name = "telegram-bot"
 version = "0.1.0"
 description = "Telegram MCC credit card rewards lookup bot"
 requires-python = ">=3.13"
@@ -1168,14 +1168,14 @@ uv run pywrangler deploy
 
 The resulting Worker URL will be similar to:
 
-https://mcc-rewards-bot.<subdomain>.workers.dev
+https://telegram-bot.<subdomain>.workers.dev
 
 34. Telegram Webhook
 Register the Worker URL with Telegram:
 
 curl -X POST \
   "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-  -d "url=https://mcc-rewards-bot.<subdomain>.workers.dev" \
+  -d "url=https://telegram-bot.<subdomain>.workers.dev" \
   -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}"
 
 The secret_token must match:

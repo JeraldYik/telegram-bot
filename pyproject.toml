@@ -1,5 +1,5 @@
 [project]
-name = "mcc-rewards-bot"
+name = "telegram-bot"
 version = "0.1.0"
 description = "Telegram MCC credit card rewards lookup bot"
 requires-python = ">=3.13"
