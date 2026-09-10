@@ -5,9 +5,11 @@ from typing import Optional
 try:
     from formatter import format_mcc_response
     from matcher import match_mcc
+    from mcc import find_mcc
 except ModuleNotFoundError:
     from src.formatter import format_mcc_response
     from src.matcher import match_mcc
+    from src.mcc import find_mcc
 
 
 def parse_mcc_command(text: str) -> Optional[int]:
@@ -21,22 +23,18 @@ def parse_mcc_command(text: str) -> Optional[int]:
     if command != "/mcc":
         return None
 
-    if len(parts) != 2:
+    if len(parts) < 2:
         return None
 
-    value = parts[1]
-
-    if len(value) != 4 or not value.isdigit():
-        return None
-
-    return int(value)
+    return find_mcc(" ".join(parts[1:]))
 
 
 def usage_message() -> str:
     return (
-        "Usage: /mcc <4 digit MCC>\n\n"
+        "Usage: /mcc <4 digit MCC or description>\n\n"
         "Example:\n"
-        "/mcc 5411"
+        "/mcc 4411\n"
+        "/mcc cruise"
     )
 
 
@@ -44,9 +42,10 @@ def help_message() -> str:
     return (
         "MCC Rewards Bot\n\n"
         "Use:\n"
-        "/mcc <4 digit MCC>\n\n"
+        "/mcc <4 digit MCC or description>\n\n"
         "Example:\n"
-        "/mcc 5411"
+        "/mcc 4411\n"
+        "/mcc cruise"
     )
 
 

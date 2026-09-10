@@ -15,7 +15,6 @@ class CardResult:
     status: Status
     category: Optional[str]
     reason: str
-    caveats: tuple[str, ...] = ()
 
 
 UOB_PREFERRED_ONLINE_MCCS = {
@@ -36,13 +35,20 @@ UOB_PREFERRED_ONLINE_MCCS = {
 
 
 LADY_SOLITAIRE_CATEGORIES = {
-    "Beauty & Wellness": {5912, 5977, 7230, 7231, 7298, 7297},
-    "Dining": {5811, 5812, 5814, 5499},
-    "Entertainment": {5813, 7832, 7922},
-    "Family": {5411, 5641},
-    "Fashion": {5311, 5611, 5621, 5631, 5651, 5655, 5661, 5691, 5699, 5948},
+    # "Beauty & Wellness": {5912, 5977, 7230, 7231, 7298, 7297},
+    # "Dining": {5811, 5812, 5814, 5499},
+    # "Entertainment": {5813, 7832, 7922},
+    # "Family": {5411, 5641},
+    # "Fashion": {5311, 5611, 5621, 5631, 5651, 5655, 5661, 5691, 5699, 5948},
     "Transport": {4111, 4121, 4789, 5541, 5542},
+    "Travel": {4411, 4511, 4582, 4722, 5309, 7011},
 }
+
+
+LADY_SOLITAIRE_TRAVEL_RANGES = (
+    range(3000, 3300),
+    range(3500, 4000),
+)
 
 
 MAYBANK_XL_CATEGORIES = {
@@ -60,9 +66,14 @@ MAYBANK_XL_TRAVEL_RANGES = (
 
 
 def find_lady_categories(mcc: int) -> list[str]:
-    return [
+    categories = [
         category for category, mccs in LADY_SOLITAIRE_CATEGORIES.items() if mcc in mccs
     ]
+
+    if any(mcc in r for r in LADY_SOLITAIRE_TRAVEL_RANGES):
+        categories.append("Travel")
+
+    return categories
 
 
 def find_maybank_categories(mcc: int) -> list[str]:

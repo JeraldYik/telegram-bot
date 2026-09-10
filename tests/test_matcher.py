@@ -6,7 +6,7 @@ def test_5812():
     results = match_mcc(5812)
 
     assert results[0].status == Status.CONDITIONAL
-    assert results[1].status == Status.CONDITIONAL
+    assert results[1].status == Status.NO_BONUS
     assert results[2].status == Status.BONUS
 
 
@@ -22,7 +22,7 @@ def test_5411():
     results = match_mcc(5411)
 
     assert results[0].status == Status.CONDITIONAL
-    assert results[1].status == Status.CONDITIONAL
+    assert results[1].status == Status.NO_BONUS
     assert results[2].status == Status.NO_BONUS
 
 

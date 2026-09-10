@@ -1,4 +1,5 @@
 from cards import CardResult, Status
+from mcc import mcc_name
 
 
 STATUS_ICON = {
@@ -22,17 +23,17 @@ def format_card_result(result: CardResult) -> str:
         result.reason,
     ]
 
-    if result.caveats:
-        lines.append("")
-        lines.append("Caveats:")
-        lines.extend(f"• {caveat}" for caveat in result.caveats)
-
     return "\n".join(lines)
 
 
 def format_mcc_response(mcc: int, results: list[CardResult]) -> str:
+    title = f"MCC {mcc}"
+    name = mcc_name(mcc)
+    if name:
+        title += f" - {name}"
+
     lines = [
-        f"MCC {mcc}",
+        title,
         "",
     ]
 
