@@ -5,7 +5,6 @@ from typing import Optional
 
 class Status(str, Enum):
     BONUS = "BONUS"
-    CONDITIONAL = "CONDITIONAL"
     NO_BONUS = "NO_BONUS"
 
 

@@ -11,7 +11,7 @@ def match_uob_preferred(mcc: int) -> CardResult:
     if mcc in UOB_PREFERRED_ONLINE_MCCS:
         return CardResult(
             card="UOB Preferred Visa",
-            status=Status.CONDITIONAL,
+            status=Status.BONUS,
             category="Selected Online Transactions",
             reason=(
                 "This MCC is in UOB Preferred Visa's eligible "
@@ -21,12 +21,11 @@ def match_uob_preferred(mcc: int) -> CardResult:
 
     return CardResult(
         card="UOB Preferred Visa",
-        status=Status.CONDITIONAL,
-        category="Mobile Contactless",
+        status=Status.NO_BONUS,
+        category=None,
         reason=(
-            "This MCC is not in the Selected Online Transactions MCC list, "
-            "but MCC alone cannot rule out UOB Preferred Visa's separate "
-            "Mobile Contactless bonus."
+            "This MCC is not in UOB Preferred Visa's eligible "
+            "Selected Online Transactions MCC list."
         ),
     )
 
@@ -49,7 +48,7 @@ def match_lady_solitaire(mcc: int) -> CardResult:
 
     return CardResult(
         card="UOB Lady's Solitaire",
-        status=Status.CONDITIONAL,
+        status=Status.BONUS,
         category=category,
         reason=(
             f"MCC {mcc} belongs to the Lady's Solitaire "

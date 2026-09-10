@@ -11,8 +11,7 @@ UOB Lady's Solitaire
 Maybank XL Rewards
 The bot must distinguish between:
 
-BONUS — the MCC is a bonus category and, based on the available information, qualifies.
-CONDITIONAL — the MCC can qualify, but additional transaction or card information is required.
+BONUS — the MCC matches a configured bonus category.
 NO BONUS — the MCC is not a configured bonus category.
 The application is deployed as a Cloudflare Python Worker behind a Telegram webhook.
 
@@ -180,17 +179,15 @@ Example:
 /mcc 5411
 
 9. Result States
-Every card result must have one of three states:
+Every card result must have one of two states:
 
 BONUS
-CONDITIONAL
 NO_BONUS
 
 Use the following icons:
 
 State	Icon
 BONUS	🟢
-CONDITIONAL	🟡
 NO_BONUS	🔴
 
 Internal model:
@@ -201,7 +198,6 @@ from enum import Enum
 
 class Status(str, Enum):
     BONUS = "BONUS"
-    CONDITIONAL = "CONDITIONAL"
     NO_BONUS = "NO_BONUS"
 
 
@@ -217,11 +213,9 @@ class CardResult:
 10.1 UOB Preferred Visa
 Formerly known as UOB Preferred Platinum Visa.
 
-There are two relevant bonus mechanisms:
-
-Selected Online Transactions
-Mobile Contactless Transactions
-Therefore, MCC alone is not always sufficient.
+This matcher evaluates Selected Online Transactions only. Contactless
+transactions are accepted separately by UOB, but they are outside this
+MCC-based online transaction check.
 
 Selected Online Transactions
 Configured eligible MCCs:
@@ -310,29 +304,10 @@ Charitable transactions
 Other excluded transactions
 UOB may also change the eligible MCC list.
 
-Mobile Contactless
-UOB Preferred Visa has a separate Mobile Contactless bonus mechanism.
-
-Examples include:
-
-Apple Pay
-Google Pay
-Samsung Pay
-when used as a mobile device at a qualifying physical contactless terminal.
-
-A physical-card contactless transaction should not automatically be treated as Mobile Contactless.
-
-An in-app wallet transaction should not automatically be treated as Mobile Contactless.
-
-SimplyGo
-Eligible SimplyGo Account Based Ticketing transactions can qualify under the Mobile Contactless mechanism.
-
-This cannot be reliably determined from MCC alone.
-
 Matcher behavior
 If the MCC is in UOB_PREFERRED_ONLINE_MCCS:
 
-CONDITIONAL
+BONUS
 
 Reason:
 
@@ -342,16 +317,11 @@ as an online transaction. Other exclusions apply.
 
 If the MCC is not in the online list:
 
-CONDITIONAL
+NO_BONUS
 
 Reason:
 
 This MCC is not in the Selected Online Transactions MCC list.
-
-However, UOB Preferred Visa has a separate Mobile Contactless
-bonus mechanism, which cannot be determined from MCC alone.
-
-This deliberately avoids false negatives.
 
 11. UOB Lady's Solitaire
 UOB Lady's Solitaire allows the cardholder to select two Preferred Rewards Categories.
@@ -369,11 +339,7 @@ Category selections are quarterly.
 
 The bot does not know the user's current selections.
 
-Therefore, a matching MCC should normally return:
-
-CONDITIONAL
-
-rather than BONUS.
+Therefore, a matching MCC returns BONUS.
 
 11.1 Beauty & Wellness
 LADY_SOLITAIRE_BEAUTY = {
@@ -442,7 +408,7 @@ Travel eligibility cannot be guaranteed from MCC alone.
 For MCC 5541:
 
 UOB Lady's Solitaire
-🟡 CONDITIONAL — Transport
+🟢 BONUS — Transport
 
 Reason:
 
@@ -454,12 +420,12 @@ two currently selected Preferred Rewards Categories.
 For MCC 5812:
 
 UOB Lady's Solitaire
-🟡 CONDITIONAL — Dining
+🟢 BONUS — Dining
 
 For MCC 5411:
 
 UOB Lady's Solitaire
-🟡 CONDITIONAL — Family
+🟢 BONUS — Family
 
 For an MCC that does not belong to a configured category:
 
@@ -554,7 +520,7 @@ It depends on whether the transaction is a qualifying foreign transaction, inclu
 
 Therefore:
 
-MCC alone → CONDITIONAL
+MCC alone → NO_BONUS
 
 The bot must not infer Foreign Spend solely from MCC.
 
@@ -643,7 +609,6 @@ from enum import Enum
 
 class Status(str, Enum):
     BONUS = "BONUS"
-    CONDITIONAL = "CONDITIONAL"
     NO_BONUS = "NO_BONUS"
 
 
@@ -756,7 +721,7 @@ def match_uob_preferred(mcc: int) -> CardResult:
     if mcc in UOB_PREFERRED_ONLINE_MCCS:
         return CardResult(
             card="UOB Preferred Visa",
-            status=Status.CONDITIONAL,
+            status=Status.BONUS,
             category="Selected Online Transactions",
             reason=(
                 "This MCC is in UOB Preferred Visa's eligible "
@@ -771,7 +736,7 @@ def match_uob_preferred(mcc: int) -> CardResult:
 
     return CardResult(
         card="UOB Preferred Visa",
-        status=Status.CONDITIONAL,
+        status=Status.NO_BONUS,
         category="Mobile Contactless",
         reason=(
             "This MCC is not in the Selected Online Transactions MCC list, "
@@ -807,7 +772,7 @@ def match_lady_solitaire(mcc: int) -> CardResult:
 
     return CardResult(
         card="UOB Lady's Solitaire",
-        status=Status.CONDITIONAL,
+        status=Status.BONUS,
         category=category,
         reason=(
             f"MCC {mcc} belongs to the Lady's Solitaire "
@@ -872,7 +837,6 @@ from cards import CardResult, Status
 
 STATUS_ICON = {
     Status.BONUS: "🟢",
-    Status.CONDITIONAL: "🟡",
     Status.NO_BONUS: "🔴",
 }
 
@@ -1202,24 +1166,24 @@ from cards import Status
 def test_5812():
     results = match_mcc(5812)
 
-    assert results[0].status == Status.CONDITIONAL
-    assert results[1].status == Status.CONDITIONAL
+    assert results[0].status == Status.BONUS
+    assert results[1].status == Status.NO_BONUS
     assert results[2].status == Status.BONUS
 
 
 def test_5541():
     results = match_mcc(5541)
 
-    assert results[0].status == Status.CONDITIONAL
-    assert results[1].status == Status.CONDITIONAL
+    assert results[0].status == Status.NO_BONUS
+    assert results[1].status == Status.BONUS
     assert results[2].status == Status.NO_BONUS
 
 
 def test_5411():
     results = match_mcc(5411)
 
-    assert results[0].status == Status.CONDITIONAL
-    assert results[1].status == Status.CONDITIONAL
+    assert results[0].status == Status.BONUS
+    assert results[1].status == Status.NO_BONUS
     assert results[2].status == Status.NO_BONUS
 
 
@@ -1248,13 +1212,8 @@ Actual reward eligibility
 
 Version 1 only knows the MCC.
 
-Therefore, when missing information could change the answer, return:
-
-🟡 CONDITIONAL
-
-rather than:
-
-🟢 BONUS
+Configured MCC matches return 🟢 BONUS. Unmatched MCCs return 🔴 NO BONUS.
+Responses still include caveats because MCC alone does not guarantee rewards.
 
 38. Examples
 /mcc 5812
@@ -1263,7 +1222,7 @@ Expected:
 MCC 5812
 
 UOB Preferred Visa
-🟡 CONDITIONAL — Selected Online Transactions
+🟢 BONUS — Selected Online Transactions
 
 This MCC is in UOB Preferred Visa's eligible Selected Online
 Transactions MCC list.
@@ -1278,7 +1237,7 @@ Caveats:
 ━━━━━━━━━━━━━━━━━━━━
 
 UOB Lady's Solitaire
-🟡 CONDITIONAL — Dining
+🟢 BONUS — Dining
 
 MCC 5812 belongs to the Dining category.
 
@@ -1314,17 +1273,16 @@ Expected:
 MCC 5541
 
 UOB Preferred Visa
-🟡 CONDITIONAL
+🔴 NO BONUS
 
 This MCC is not in the Selected Online Transactions MCC list.
 
-However, UOB Preferred Visa has a separate Mobile Contactless
-bonus mechanism, which cannot be determined from MCC alone.
+Contactless transactions are outside this online MCC check.
 
 ━━━━━━━━━━━━━━━━━━━━
 
 UOB Lady's Solitaire
-🟡 CONDITIONAL — Transport
+🟢 BONUS — Transport
 
 MCC 5541 belongs to the Transport category.
 
@@ -1349,7 +1307,7 @@ Expected:
 MCC 5411
 
 UOB Preferred Visa
-🟡 CONDITIONAL — Selected Online Transactions
+🟢 BONUS — Selected Online Transactions
 
 MCC 5411 is in the Selected Online Transactions MCC list.
 
@@ -1359,7 +1317,7 @@ transaction and must not fall under an exclusion.
 ━━━━━━━━━━━━━━━━━━━━
 
 UOB Lady's Solitaire
-🟡 CONDITIONAL — Family
+🟢 BONUS — Family
 
 MCC 5411 belongs to the Family category.
 
@@ -1421,14 +1379,7 @@ A future version could allow users to configure their current categories:
 
 /setcategories transport travel
 
-The bot could then change:
-
-🟡 CONDITIONAL — Transport
-
-into:
-
-🟢 BONUS — Transport
-
+The bot could then validate whether the configured category is selected.
 This requires persistent storage.
 
 Possible Cloudflare options:
@@ -1570,9 +1521,6 @@ The most important UX distinction is:
 
 🟢 BONUS
 The configured rules indicate a bonus category.
-
-🟡 CONDITIONAL
-The MCC can qualify, but more information is required.
 
 🔴 NO BONUS
 The MCC is not a configured bonus category.

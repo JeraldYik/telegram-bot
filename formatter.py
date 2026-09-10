@@ -4,7 +4,6 @@ from mcc import mcc_name
 
 STATUS_ICON = {
     Status.BONUS: "🟢",
-    Status.CONDITIONAL: "🟡",
     Status.NO_BONUS: "🔴",
 }
 

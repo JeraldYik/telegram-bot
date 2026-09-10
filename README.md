@@ -15,7 +15,7 @@ It is deployed as a Cloudflare Python Worker behind a Telegram webhook.
 - Accepts `/mcc <4 digit MCC>`
 - Validates MCC input format
 - Matches MCC data against all three card rules
-- Returns one of the states: `BONUS`, `CONDITIONAL`, or `NO_BONUS`
+- Returns one of the states: `BONUS` or `NO_BONUS`
 - Explains relevant caveats and exclusions
 - Uses static bundled rule data only
 - Requires no database or external MCC APIs
@@ -85,4 +85,4 @@ Example:
 
 ## Notes
 
-This bot intentionally avoids assuming a reward is guaranteed from MCC alone. Where the MCC does not fully determine eligibility, it returns a `CONDITIONAL` result with caveats.
+This bot intentionally avoids assuming a reward is guaranteed from MCC alone. Banks may apply transaction-method, merchant-classification, minimum-spend, monthly-cap and other exclusions.
