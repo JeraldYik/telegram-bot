@@ -1,5 +1,4 @@
 import json
-import os
 from typing import Optional
 
 from formatter import format_mcc_response
@@ -72,6 +71,17 @@ async def send_message(token: str, chat_id: int, text: str):
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
+        try:
+            return await self._handle_request(request)
+        except Exception as error:
+            # Telegram retries webhook deliveries when the Worker returns 5xx.
+            # Keep the failure visible in Worker logs, but acknowledge this
+            # update so one malformed update or transient Telegram error does
+            # not become a poison pill.
+            print(f"Unhandled webhook exception: {error}")
+            return Response("OK")
+
+    async def _handle_request(self, request):
         if request.method == "GET":
             return Response("OK")
 
@@ -86,6 +96,9 @@ class Default(WorkerEntrypoint):
         try:
             update = await request.json()
         except Exception:
+            return Response("Bad Request", status=400)
+
+        if not isinstance(update, dict):
             return Response("Bad Request", status=400)
 
         message = update.get("message")
